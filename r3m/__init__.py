@@ -74,6 +74,45 @@ def load_r3m(modelid):
     rep.load_state_dict(r3m_state_dict)
     return rep
 
+def load_r3m_from_path(modelid, root_path):
+    #home = os.path.join(expanduser("~"), ".r3m")
+
+    assert modelid == "r3m_50" or modelid == "r3m_34" or modelid == "r3m_18"
+    """
+    if modelid == "resnet50":
+        foldername = "r3m_50"
+        #modelurl = 'https://drive.google.com/uc?id=1Xu0ssuG0N1zjZS54wmWzJ7-nb0-7XzbA'
+        #configurl = 'https://drive.google.com/uc?id=10jY2VxrrhfOdNPmsFdES568hjjIoBJx8'
+    elif modelid == "resnet34":
+        foldername = "r3m_34"
+        #modelurl = 'https://drive.google.com/uc?id=15bXD3QRhspIRacOKyWPw5y2HpoWUCEnE'
+        #configurl = 'https://drive.google.com/uc?id=1RY0NS-Tl4G7M1Ik_lOym0b5VIBxX9dqW'
+    elif modelid == "resnet18":
+        foldername = "r3m_18"
+        #modelurl = 'https://drive.google.com/uc?id=1A1ic-p4KtYlKXdXHcV2QV0cUzI4kn0u-'
+        #configurl = 'https://drive.google.com/uc?id=1nitbHQ-GRorxc7vMUiEHjHWP5N11Jvc6'
+    else:
+        raise NameError('Invalid Model ID')
+    """
+
+    foldername = modelid
+
+    modelpath = os.path.join(root_path, foldername, "model.pt")
+    configpath = os.path.join(root_path, foldername, "config.yaml")
+    """
+    if not os.path.exists(modelpath):
+        gdown.download(modelurl, modelpath, quiet=False)
+        gdown.download(configurl, configpath, quiet=False)
+    """
+
+    modelcfg = omegaconf.OmegaConf.load(configpath)
+    cleancfg = cleanup_config(modelcfg)
+    rep = hydra.utils.instantiate(cleancfg)
+    rep = torch.nn.DataParallel(rep)
+    r3m_state_dict = remove_language_head(torch.load(modelpath, map_location=torch.device(device))['r3m'])
+    rep.load_state_dict(r3m_state_dict)
+    return rep
+
 def load_r3m_reproduce(modelid):
     home = os.path.join(expanduser("~"), ".r3m")
     if modelid == "r3m":
